@@ -44,16 +44,16 @@ void rayCastingFilter(void) {
 				B = (double)plano(c, l, 0, 2)/255;
 
 				if (c + 2 != W_Npixels){
-					Derivada1 = (-3*plano(c, l, 0, 1) + 4*plano(c + 1, l, 0, 1) - plano(c + 2, l, 0, 1))/4;
+					Derivada1 = (-3*plano(c, l, 0, 0) + 4*plano(c + 1, l, 0, 0) - plano(c + 2, l, 0, 0))/4;
 
 				}else{
-					Derivada1 = (3*plano(c, l, 0, 1) - 4*plano(c + 1, l, 0, 1) + plano(c + 2, l, 0, 1))/4;
+					Derivada1 = (3*plano(c, l, 0, 0) - 4*plano(c + 1, l, 0, 0) + plano(c + 2, l, 0, 0))/4;
 				}
 
 				if (l + 2 != H_Npixels){
-					Derivada2 = (-3*plano(c, l, 0, 1) + 4*plano(c, l + 1, 0, 1) - plano(c, l + 2, 0, 1))/4;
+					Derivada2 = (-3*plano(c, l, 0, 0) + 4*plano(c, l + 1, 0, 0) - plano(c, l + 2, 0, 0))/4;
 				}else{
-					Derivada2 = (3*plano(c, l, 0, 1) - 4*plano(c, l + 1, 0, 1) + plano(c, l + 2, 0, 1))/4;
+					Derivada2 = (3*plano(c, l, 0, 0) - 4*plano(c, l + 1, 0, 0) + plano(c, l + 2, 0, 0))/4;
 				}
 
 				if (Derivada1 > Precisao || Derivada2 > Precisao){
@@ -117,11 +117,11 @@ void Teclado(unsigned char key, int x, int y) {
 			break;
 
 		case '+': 
-			Precisao += 5; 
+			Precisao += 1; 
 			break;
 
 		case '-': 
-			(Precisao - 5 <= 0) ? Precisao = 5 : Precisao -= 5;
+			(Precisao - 2 <= 0) ? Precisao = 2 : Precisao -= 1;
 			break;
 
 		default:
@@ -140,7 +140,6 @@ void redimenciona(int w, int h) {
 	
 	else if (h < w) 
 		glViewport((w-wSize)/2, 0,  wSize, h);
-	
  
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -156,12 +155,16 @@ int main(int argc, char **argv) {
 	glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA); 
 	glutInitWindowSize(W_Npixels, H_Npixels);
-	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH)-W_Npixels)/2,(glutGet(GLUT_SCREEN_HEIGHT)-H_Npixels)/2);
+	// glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH)-2*W_Npixels)/2,(glutGet(GLUT_SCREEN_HEIGHT)-2*H_Npixels)/2);
+	glutInitWindowPosition(0,(glutGet(GLUT_SCREEN_HEIGHT)-H_Npixels)/2);
 
-	glutCreateWindow("Filtro TOPPER");
-	glutDisplayFunc(rayCastingFilter);
 	glutCreateWindow("Imagem Original");
 	glutDisplayFunc(rayCastingOrigin);
+	glutReshapeFunc(redimenciona);
+
+	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH))/2,(glutGet(GLUT_SCREEN_HEIGHT)-H_Npixels)/2);
+	glutCreateWindow("Filtro TOPPER");
+	glutDisplayFunc(rayCastingFilter);
 	glutReshapeFunc(redimenciona);
 	glutKeyboardFunc(Teclado);
 
