@@ -14,32 +14,22 @@ fazer camera e cenario
 #include <cstdio>
 #include <string>
 #include <iostream>
-
 #include <GL/freeglut.h>
-
-#include "CImg/CImg.h"
-
+#include "../lib/CImg/CImg.h"
 
 using namespace std;
 
-static unsigned int   W_Npixels = 700, H_Npixels = 700;
+static unsigned int   W_Npixels = 800, H_Npixels = 600;
 static double         W = 200., H = 200.;
 
-char planoFundo[10][30];
-int indiceFundo = 4;
-int controlador = 4;
 double Precisao = 10;
 
-
-//FUNÇÃO QUE PINTA A TELA
-
-void rayCasting(void) {
+void rayCastingFilter(void) {
 	using namespace cimg_library;
 
-	double R,G,B, Derivada;
+	double R,G,B, Derivada1, Derivada2;
 
-
-	CImg<unsigned char> plano("img/monochrome.jpg");
+	CImg<unsigned char> plano("../img/01.jpg");
 
 	double l, c;
 
@@ -53,13 +43,24 @@ void rayCasting(void) {
 				G = (double)plano(c, l, 0, 1)/255;
 				B = (double)plano(c, l, 0, 2)/255;
 
-				Derivada = (plano(c + 1, l, 0, 1) - plano(c, l, 0, 1))/2;
+				if (c + 2 != W_Npixels){
+					Derivada1 = (-3*plano(c, l, 0, 1) + 4*plano(c + 1, l, 0, 1) - plano(c + 2, l, 0, 1))/4;
 
-				if (Derivada < Precisao){
-					glColor3f(0, 0, 0);
+				}else{
+					Derivada1 = (3*plano(c, l, 0, 1) - 4*plano(c + 1, l, 0, 1) + plano(c + 2, l, 0, 1))/4;
+				}
+
+				if (l + 2 != H_Npixels){
+					Derivada2 = (-3*plano(c, l, 0, 1) + 4*plano(c, l + 1, 0, 1) - plano(c, l + 2, 0, 1))/4;
+				}else{
+					Derivada2 = (3*plano(c, l, 0, 1) - 4*plano(c, l + 1, 0, 1) + plano(c, l + 2, 0, 1))/4;
+				}
+
+				if (Derivada1 > Precisao || Derivada2 > Precisao){
+					glColor3f(1, 1, 1);
 					
 				}else{
-					glColor3f(1, 1, 1);
+					glColor3f(0, 0, 0);
 					
 				}
 
@@ -72,6 +73,38 @@ void rayCasting(void) {
    glFlush();
 }
 
+void rayCastingOrigin(void) {
+	using namespace cimg_library;
+
+	double R,G,B, Derivada1, Derivada2;
+
+	CImg<unsigned char> plano("../img/01.jpg");
+
+	double l, c;
+
+	glClear(GL_COLOR_BUFFER_BIT);
+	glBegin(GL_POINTS);
+
+		for(l = 0; l < H_Npixels; l++){
+			for(c = 0; c < W_Npixels; c++){
+
+				R = (double)plano(c, l, 0, 0)/255;
+				G = (double)plano(c, l, 0, 1)/255;
+				B = (double)plano(c, l, 0, 2)/255;
+
+				glColor3f(R, G, B);
+
+				glVertex2f(c, l);
+			}
+		}
+
+   glEnd();
+
+   glFlush();
+}
+
+
+
 void setGlobais(){
 	glClearColor(0.8, 0.9, 0.9, 0.0);
 }
@@ -80,14 +113,16 @@ void setGlobais(){
 void Teclado(unsigned char key, int x, int y) {	
 	switch((char)key) {
 		case 27: //ESC
-			glutDestroyWindow(0); exit(0); break;
+			glutDestroyWindow(0); exit(0); 
+			break;
 
 		case '+': 
-			Precisao += 5; break;
+			Precisao += 5; 
+			break;
 
 		case '-': 
-			if (Precisao - 5 <= 0) Precisao = 5;
-			else Precisao -= 5; break;
+			(Precisao - 5 <= 0) ? Precisao = 5 : Precisao -= 5;
+			break;
 
 		default:
 			break;
@@ -123,8 +158,10 @@ int main(int argc, char **argv) {
 	glutInitWindowSize(W_Npixels, H_Npixels);
 	glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH)-W_Npixels)/2,(glutGet(GLUT_SCREEN_HEIGHT)-H_Npixels)/2);
 
-	glutCreateWindow("_-_-_-_-_-_ Snowman _-_-_-_-_-_");
-	glutDisplayFunc(rayCasting);
+	glutCreateWindow("Filtro TOPPER");
+	glutDisplayFunc(rayCastingFilter);
+	glutCreateWindow("Imagem Original");
+	glutDisplayFunc(rayCastingOrigin);
 	glutReshapeFunc(redimenciona);
 	glutKeyboardFunc(Teclado);
 
